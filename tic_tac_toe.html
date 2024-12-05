@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe</title>
+    <style>
+        /* Button background is blue with a black border */
+        button {
+            background-color: #3498db;
+            height: 100%;
+            width: 100%;
+            text-align: center;
+            font-size: 20px;
+            color: white;
+            vertical-align: middle;
+            border: 0px;
+        }
+
+        /* Styles the table cells to look like a tic-tac-toe grid */
+        table td {
+            text-align: center;
+            vertical-align: middle;
+            padding: 0px;
+            margin: 0px;
+            width: 75px;
+            height: 75px;
+            font-size: 20px;
+            border: 3px solid #040404;
+            color: white;
+        }
+
+        /* Hover effect for buttons */
+        button:hover,
+        button:focus {
+            background-color: #04469d;
+            text-decoration: none;
+            outline: none;
+        }
+
+        /* Winner styles */
+        .x-cell {
+            background-color: green;
+            color: white;
+        }
+
+        .o-cell {
+            background-color: red;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Tic Tac Toe</h1>
+    <p id="turn-indicator">Turn: X</p>
+    <p id="winner-indicator"></p>
+
+    <table>
+        <tbody id="game-board">
+            <!-- Grid will be dynamically generated -->
+        </tbody>
+    </table>
+    <button id="reset-button">Reset Game</button>
+
+    <script>
+        // Initialize game variables
+        const boardSize = 3;
+        let currentPlayer = 'X';
+        let grid = Array(boardSize).fill(null).map(() => Array(boardSize).fill(null));
+        let gameEnded = false;
+
+        // Create the grid
+        const gameBoard = document.getElementById('game-board');
+        for (let row = 0; row < boardSize; row++) {
+            const tr = document.createElement('tr');
+            for (let col = 0; col < boardSize; col++) {
+                const td = document.createElement('td');
+                const button = document.createElement('button');
+                button.id = `cell-${row}-${col}`;
+                button.addEventListener('click', () => handleCellClick(row, col));
+                td.appendChild(button);
+                tr.appendChild(td);
+            }
+            gameBoard.appendChild(tr);
+        }
+
+        // Function to handle cell click
+        function handleCellClick(row, col) {
+            if (grid[row][col] || gameEnded) return;
+
+            // Update grid and DOM
+            grid[row][col] = currentPlayer;
+            const cellButton = document.getElementById(`cell-${row}-${col}`);
+            cellButton.textContent = currentPlayer;
+            cellButton.classList.add(currentPlayer === 'X' ? 'x-cell' : 'o-cell');
+            cellButton.disabled = true;
+
+            // Check for a winner
+            const winner = whoIsWinner(grid);
+            if (winner) {
+                document.getElementById('winner-indicator').textContent = `The winner is ${winner}!`;
+                endGame();
+            } else if (isDraw(grid)) {
+                document.getElementById('winner-indicator').textContent = "It's a draw!";
+                endGame();
+            } else {
+                // Switch players
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                document.getElementById('turn-indicator').textContent = `Turn: ${currentPlayer}`;
+            }
+        }
+
+        // Function to check who is the winner
+        function whoIsWinner(grid) {
+            const winningCombinations = [
+                // Rows
+                ['0-0', '0-1', '0-2'],
+                ['1-0', '1-1', '1-2'],
+                ['2-0', '2-1', '2-2'],
+                // Columns
+                ['0-0', '1-0', '2-0'],
+                ['0-1', '1-1', '2-1'],
+                ['0-2', '1-2', '2-2'],
+                // Diagonals
+                ['0-0', '1-1', '2-2'],
+                ['0-2', '1-1', '2-0']
+            ];
+
+            for (const combination of winningCombinations) {
+                const [a, b, c] = combination;
+                const [rowA, colA] = a.split('-').map(Number);
+                const [rowB, colB] = b.split('-').map(Number);
+                const [rowC, colC] = c.split('-').map(Number);
+
+                if (
+                    grid[rowA][colA] &&
+                    grid[rowA][colA] === grid[rowB][colB] &&
+                    grid[rowA][colA] === grid[rowC][colC]
+                ) {
+                    return grid[rowA][colA]; // Return the winner ('X' or 'O')
+                }
+            }
+
+            return null; // No winner
+        }
+
+        // Function to check for a draw
+        function isDraw(grid) {
+            return grid.flat().every(cell => cell !== null);
+        }
+
+        // Function to end the game
+        function endGame() {
+            gameEnded = true;
+            document.querySelectorAll('td button').forEach(button => (button.disabled = true));
+        }
+
+        // Function to reset the game
+        document.getElementById('reset-button').addEventListener('click', () => {
+            // Reset the grid array
+            grid = Array(boardSize).fill(null).map(() => Array(boardSize).fill(null));
+            // Reset the game variables
+            currentPlayer = 'X';
+            gameEnded = false;
+
+            // Update UI elements
+            document.getElementById('turn-indicator').textContent = `Turn: ${currentPlayer}`;
+            document.getElementById('winner-indicator').textContent = '';
+
+            // Reset all buttons in the grid
+            const buttons = document.querySelectorAll('td button');
+            buttons.forEach(button => {
+                button.textContent = '';
+                button.className = '';
+                button.disabled = false;
+            });
+        });
+    </script>
+</body>
+
+</html>
